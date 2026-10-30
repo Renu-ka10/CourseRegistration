@@ -1,0 +1,77 @@
+================================================================================
+
+          COURSE REGISTRATION API - SETUP, RUN & TECHNICAL SUMMARY
+
+================================================================================
+
+Project: Course Registration & Waitlist Management API
+
+Framework: ASP.NET Core (.NET 10.0)
+
+Author: Project Developer
+
+
+
+--------------------------------------------------------------------------------
+
+1. SETUP AND RUN INSTRUCTIONS
+
+--------------------------------------------------------------------------------
+
+Prerequisites: .NET 8.0 SDK installed.
+
+
+
+Commands:
+
+• Restore Dependencies:
+
+  dotnet restore
+
+
+
+• Start Application:
+
+  dotnet run --project CourseWaitlist.Api --urls "http://localhost:5000"
+
+
+
+• Access Swagger UI:
+
+  Open http://localhost:5000/swagger in browser.
+
+
+
+• Run Automated Unit & Concurrency Tests:
+
+  dotnet test
+
+
+
+--------------------------------------------------------------------------------
+
+2. LIMITATIONS & SCOPE RISKS
+
+--------------------------------------------------------------------------------
+
+• In-Memory Volatility: State resets on server restart as data is stored in-memory
+
+  rather than a persistent database.
+
+• Single-Instance Concurrency: Thread safety is enforced via SemaphoreSlim, 
+
+  which works for a single process but would require distributed locking 
+
+  (e.g., Redis) if scaled across multiple instances.
+
+• Unauthenticated Endpoints: Endpoints take raw `learnerId` without authentication,
+
+  which would require JWT authorization in a production environment.
+
+• Single Course Focus: Optimized for a single course offering (`CS101`) for 
+
+  prototype evaluation rather than multi-course relational scheduling.
+
+
+
+================================================================================
