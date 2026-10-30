@@ -1,0 +1,6 @@
+@CourseWaitlist.Api_HostAddress = http://localhost:5043
+
+GET {{CourseWaitlist.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
