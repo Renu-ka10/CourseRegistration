@@ -1,0 +1,222 @@
+
+OVERVIEW
+
+--------------------------------------------------------------------------------
+
+This document details my use of AI tools throughout the engineering lifecycle of
+
+this project. It records the prompts I used, the recommendations provided by the
+
+AI, my decisions on whether to accept or modify those recommendations, and the
+
+verification steps I took to ensure code quality and adherence to requirements.
+
+
+
+--------------------------------------------------------------------------------
+
+LOG ENTRIES
+
+--------------------------------------------------------------------------------
+
+
+
+ENTRY 1: Concurrency and Thread-Safe State Management
+
+------------------------------------------------------
+
+• Engineering Task:
+
+  Designing a thread-safe mechanism to manage active enrollments and waitlist
+
+  promotions in an in-memory ASP.NET Core service.
+
+
+
+• Prompt Used:
+
+  "Implement enrollment, dropping, and FIFO waitlist promotion for one course 
+
+  offering using thread-safe state management in ASP.NET Core."
+
+
+
+• AI Proposal Summary:
+
+  The AI suggested wrapping state mutations (modifying the enrolled list and 
+
+  waitlist queue) inside an asynchronous `SemaphoreSlim(1, 1)` lock to prevent
+
+  race conditions during concurrent API requests.
+
+
+
+• Decision: ACCEPTED
+
+  I accepted the suggestion as `SemaphoreSlim` is lightweight and well-suited for
+
+  in-memory async operation synchronization in .NET.
+
+
+
+• Verification Method:
+
+  I ran the automated xUnit test `ConcurrentEnrollments_PreserveCapacityAndInvariants`
+
+  using `Task.WhenAll` to send parallel requests. All tests passed without capacity
+
+  breaches or race conditions.
+
+
+
+
+
+ENTRY 2: Waitlist Promotion Policy for Ineligible Learners
+
+----------------------------------------------------------
+
+• Engineering Task:
+
+  Defining and enforcing a consistent waitlist promotion strategy when the top 
+
+  waitlisted learner lacks course prerequisites.
+
+
+
+• Prompt Used:
+
+  "Define whether an ineligible learner is skipped or remains waiting, and apply 
+
+  that policy consistently during drop promotions."
+
+
+
+• AI Proposal Summary:
+
+  The AI proposed a "Skip-and-Retain" policy: when a seat opens, the system 
+
+  evaluates waitlisted learners sequentially. If the first candidate lacks 
+
+  prerequisites, they are skipped for promotion but remain in their queue position.
+
+
+
+• Decision: ACCEPTED
+
+  I accepted this policy because it satisfies strict FIFO ordering while ensuring 
+
+  unqualified learners are not enrolled prematurely.
+
+
+
+• Verification Method:
+
+  I created unit tests (`Enroll_FailsWhenPrerequisiteNotMet`) and manually 
+
+  triggered `/api/Course/drop` in Swagger UI using test learner L4 to confirm 
+
+  that ineligible learners stay queued while eligible ones are promoted.
+
+
+
+
+
+ENTRY 3: Swagger UI Middleware Configuration
+
+---------------------------------------------
+
+• Engineering Task:
+
+  Resolving HTTP 404 errors when accessing the Swagger documentation endpoint.
+
+
+
+• Prompt Used:
+
+  "swagger is still not loading"
+
+
+
+• AI Proposal Summary:
+
+  The AI identified a route collision caused by setting `RoutePrefix = string.Empty;` 
+
+  and suggested reverting to standard ASP.NET Core Swagger middleware.
+
+
+
+• Decision: EDITED
+
+  I edited my `Program.cs` file to remove the custom root prefix and restored 
+
+  the standard `/swagger` endpoint configuration.
+
+
+
+• Verification Method:
+
+  I restarted the app via `dotnet run` and loaded `http://localhost:5000/swagger` 
+
+  in my browser, confirming the interactive Swagger UI loaded successfully.
+
+
+
+
+
+ENTRY 4: API Request Payload & Endpoint Testing
+
+-----------------------------------------------
+
+• Engineering Task:
+
+  Testing API endpoints in Swagger UI and fixing `404 Learner Not Found` errors.
+
+
+
+• Prompt Used:
+
+  "what should i give here for both end points"
+
+
+
+• AI Proposal Summary:
+
+  The AI explained that the mock database uses string IDs formatted as "L1", "L2", 
+
+  "L3", "L4", rather than generic numeric inputs like "1".
+
+
+
+• Decision: ACCEPTED
+
+  I used the recommended JSON payload structure with valid learner keys.
+
+
+
+• Verification Method:
+
+  I executed POST requests on `/api/Course/enroll` and `/api/Course/drop` in 
+
+  Swagger UI using `{"learnerId": "L1"}` and verified `200 OK` responses along 
+
+  with accurate state updates in `/api/Course/state`.
+
+
+
+--------------------------------------------------------------------------------
+
+SUMMARY OF RESULTS
+
+--------------------------------------------------------------------------------
+
+- Total AI Interactions Logged: 4
+
+- Accepted Proposals: 3
+
+- Edited Proposals: 1
+
+- Rejected Proposals: 0
+
+- Automated Tests Passing: 100%
+
+================================================================================
